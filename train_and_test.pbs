@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#PBS -N train_and_test
+#PBS -l ncpus=8
+#PBS -l ngpus=1
+#PBS -l mem=32gb
+#PBS -l walltime=100:00:00
+#PBS -q gpuq2
+
+cd "${HOME}/jellies/src" || exit
+
+DEVICE="cuda:0"
+EPOCHS=100
+BATCH="DEFAULT"
+# seeds "2 7 9" or "9 16 17" depending on the dataset
+# this is because domain-based splitting can lead to extremely unbalanced splits for some seeds
+SEEDS="DEFAULT"
+MODELS="yolo8 dt2"
+GRPS="Groups" # "Groups" for domain-based splitting; "NoGroups" for random splitting
+DATASETS="DeepFish GLOW_low_visibility_estuaries Jellytoring"
+# list of image enhancement methods (assumes preprocessed data in specific data directories already exist)
+PPS="NONE resized_MSRCR MLLE autocontrast"
+#PPS="ARCR CAP CLAHE DCP ace adjust_gamma_down adjust_gamma_up adjust_log adjust_sigmoid grey_world unsharp_mask FUnIE-GAN resized_MSRCR_15_80_250_fk"
+
+# OPTIONAL for comparing NMS threshold 0.5
+#export EXTRA_ARGS="--NMS_threshold 0.5"
+#export EXTRA_NAME=".NMS50"
+
+# OPTIONAL for subsampling the training dataset
+#export EXTRA_ARGS="--subsample_train 400 --subsample_groups 0.50"
+#export EXTRA_NAME=".ssT400.ssG50"
+
+# do not forget double quotes
+bash train_and_test.sh "${SEEDS}" ${DEVICE} ${EPOCHS} ${BATCH} "${MODELS}" "${GRPS}" "${DATASETS}" "${PPS}"
